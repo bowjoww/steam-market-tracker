@@ -1,0 +1,14 @@
+{
+  "appid": 730,
+  "currency": 7,
+  "currency_label": "BRL",
+  "market_hash_name": "Sticker | FalleN (Gold) | Cologne 2026",
+  "listing_url": "https://steamcommunity.com/market/listings/730/Sticker%20%7C%20FalleN%20%28Gold%29%20%7C%20Cologne%202026",
+  "dashboard_url": "",
+  "samples_per_run": 3,
+  "sample_sleep_seconds": 4,
+  "smoothing_window": 3,
+  "watch_threshold_pct": 6.0,
+  "sell_threshold_pct": 10.0,
+  "rearm_threshold_pct": 4.0
+}

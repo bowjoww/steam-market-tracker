@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Monitor de Mercado Steam · Team VIX</title>
+<script src="config.js"></script>
+<style>
+  :root{
+    --bg:#0c0a08; --panel:#16130f; --panel2:#1c1813; --line:#2a241b;
+    --text:#f4ecd8; --muted:#9a8f78; --gold:#e8b84b; --gold2:#c9962f;
+    --green:#22c55e; --amber:#f59e0b; --red:#e11d48;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(120% 90% at 50% -10%,#1c1710 0%,var(--bg) 60%) fixed;color:var(--text);
+    font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:22px 16px 60px;line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto}
+  header{text-align:center;margin-bottom:8px}
+  .eyebrow{color:var(--gold);letter-spacing:.22em;font-size:12px;text-transform:uppercase;font-weight:700}
+  h1{font-size:clamp(22px,5vw,32px);margin-top:6px}
+  .lead{color:var(--muted);font-size:14px;margin-top:6px}
+  .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0 12px;flex-wrap:wrap}
+  .bar h2{font-size:16px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:700}
+  .btn-gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1a1408;padding:10px 16px}
+  .btn-gold:hover{filter:brightness(1.06)}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);padding:9px 14px}
+  /* grid de cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;
+    transition:transform .12s ease,border-color .12s ease;position:relative;overflow:hidden}
+  .card:hover{transform:translateY(-2px);border-color:#3a3122}
+  .card .strip{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green)}
+  .card.s-WATCH .strip{background:var(--amber)} .card.s-SELL .strip{background:var(--red)}
+  .card .name{font-weight:700;font-size:15px;padding-right:64px;line-height:1.3}
+  .card .owner{color:var(--muted);font-size:12px;margin-top:2px}
+  .pill{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;letter-spacing:.04em;
+    padding:4px 9px;border-radius:999px}
+  .p-HOLD{background:rgba(34,197,94,.14);color:var(--green)}
+  .p-WATCH{background:rgba(245,158,11,.16);color:var(--amber)}
+  .p-SELL{background:rgba(225,29,72,.16);color:var(--red)}
+  .row{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
+  .row .k{color:var(--muted)} .row .v{font-weight:700}
+  .v.gold{color:var(--gold)}
+  .foot{color:var(--muted);font-size:11.5px;margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+  .empty{color:var(--muted);text-align:center;padding:40px;border:1px dashed var(--line);border-radius:16px}
+  /* modal */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;
+    align-items:center;justify-content:center;padding:18px;z-index:30}
+  .scrim.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:680px;width:100%;
+    max-height:90vh;overflow:auto;padding:22px}
+  .modal h3{font-size:18px} .modal .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .mstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:16px 0}
+  .mstat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .mstat .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .mstat .v{font-size:18px;font-weight:700;margin-top:3px}
+  /* form */
+  .form{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:8px;display:none}
+  .form.open{display:block}
+  .form .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px;text-transform:uppercase;letter-spacing:.05em}
+  input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);
+    padding:10px 12px;font-family:inherit;font-size:14px}
+  input:focus{outline:none;border-color:var(--gold2)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .msg{padding:10px 12px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
+  .msg.ok{display:block;background:rgba(34,197,94,.12);border:1px solid #1f6f43;color:#86efac}
+  .msg.err{display:block;background:rgba(225,29,72,.12);border:1px solid #6b1f27;color:#fca5a5}
+  details summary{cursor:pointer;color:var(--muted);font-size:12px;margin-top:12px}
+  a{color:var(--gold);text-decoration:none} a:hover{text-decoration:underline}
+  .x{float:right;background:transparent;color:var(--muted);font-size:22px;line-height:1;border:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Team VIX · Mercado Steam</div>
+    <h1>Monitor de Itens · Stop Móvel</h1>
+    <p class="lead">Cada um acompanha seus itens da Steam. Quando o piso vira pra baixo, o dono é avisado no Discord.</p>
+  </header>
+
+  <div class="bar">
+    <h2 id="count">Carregando…</h2>
+    <div>
+      <button class="btn-ghost" id="refresh">Atualizar</button>
+      <button class="btn-gold" id="toggleForm">+ Adicionar item</button>
+    </div>
+  </div>
+
+  <div class="form" id="form">
+    <div class="grid2">
+      <div>
+        <label>Link do item na Steam</label>
+        <input id="f-url" placeholder="https://steamcommunity.com/market/listings/730/..." />
+        <div class="hint">Abra o item no Mercado da Steam e cole a URL inteira.</div>
+      </div>
+      <div>
+        <label>Seu @ no Discord (pra exibir)</label>
+        <input id="f-handle" placeholder="saru" />
+        <div class="hint">Só o nome, sem o @.</div>
+      </div>
+    </div>
+    <label>Seu ID numérico do Discord (pra te marcar de verdade)</label>
+    <input id="f-id" placeholder="ex: 327904678614401025" inputmode="numeric" />
+    <div class="hint">Discord → Config → Avançado → Modo Desenvolvedor; aí botão direito no seu nome → "Copiar ID". Ou cadastre pelo bot com <b>/acompanhar</b> que ele pega sozinho.</div>
+    <details>
+      <summary>Ajustes avançados (limites do alerta)</summary>
+      <div class="grid2" style="margin-top:8px">
+        <div><label>Avisar venda em queda de (%)</label><input id="f-sell" type="number" value="10" min="2" max="50" /></div>
+        <div><label>"Atenção" em queda de (%)</label><input id="f-watch" type="number" value="6" min="1" max="40" /></div>
+      </div>
+    </details>
+    <div class="msg" id="form-msg"></div>
+    <div style="margin-top:14px;text-align:right">
+      <button class="btn-gold" id="submit">Adicionar e começar a monitorar</button>
+    </div>
+  </div>
+
+  <div id="cards" class="grid"></div>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Chart from "https://esm.sh/chart.js@4.4.1/auto";
+
+const sb = createClient(window.SB.url, window.SB.key);
+const SEV = { HOLD:0, WATCH:1, SELL:2 };
+const BRL = (n,cur="R$") => n==null ? "—" : cur+" "+Number(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const median = a => { const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; };
+function rel(iso){ if(!iso) return "ainda não checado";
+  const d=(Date.now()-new Date(iso).getTime())/1000;
+  if(d<90) return "agora há pouco"; if(d<3600) return Math.round(d/60)+" min atrás";
+  if(d<86400) return Math.round(d/3600)+"h atrás"; return Math.round(d/86400)+"d atrás"; }
+const LABEL = {HOLD:"SEGURA",WATCH:"ATENÇÃO",SELL:"VENDE"};
+
+const $ = s => document.querySelector(s);
+let WATCHES = [];
+
+async function load(){
+  $("#count").textContent = "Carregando…";
+  const { data, error } = await sb.from("steam_watches").select("*").eq("active",true);
+  if(error){ $("#count").textContent = "Erro ao carregar: "+error.message; return; }
+  WATCHES = (data||[]).sort((a,b)=> (SEV[b.signal]-SEV[a.signal]) || (b.drawdown_pct||0)-(a.drawdown_pct||0) || (a.label||"").localeCompare(b.label||""));
+  render();
+}
+
+function render(){
+  const n = WATCHES.length;
+  $("#count").textContent = n ? `${n} ${n>1?"itens monitorados":"item monitorado"}` : "Nenhum item ainda";
+  const box = $("#cards");
+  if(!n){ box.innerHTML = `<div class="empty">Ninguém cadastrou item ainda.<br>Clique em <b>+ Adicionar item</b> e cole o link da Steam.</div>`; return; }
+  box.innerHTML = WATCHES.map((w,i)=>{
+    const sig=w.signal||"HOLD";
+    return `<div class="card s-${sig}" data-i="${i}">
+      <span class="strip"></span>
+      <span class="pill p-${sig}">${LABEL[sig]||sig}</span>
+      <div class="name">${esc(w.label||w.market_hash_name)}</div>
+      <div class="owner">${w.discord_handle?("@"+esc(w.discord_handle)):"sem dono definido"}</div>
+      <div class="row"><span class="k">Piso agora</span><span class="v gold">${BRL(w.current_floor)}</span></div>
+      <div class="row"><span class="k">Topo</span><span class="v">${BRL(w.peak)}</span></div>
+      <div class="row"><span class="k">Recuo do topo</span><span class="v" style="color:${sig==='SELL'?'var(--red)':sig==='WATCH'?'var(--amber)':'var(--text)'}">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</span></div>
+      <div class="foot">Atualizado ${rel(w.last_checked_at)}</div>
+    </div>`;
+  }).join("");
+  box.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>openModal(WATCHES[+c.dataset.i])));
+}
+const esc = s => (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+async function openModal(w){
+  const sig=w.signal||"HOLD";
+  $("#modal").innerHTML = `
+    <button class="x" id="close">×</button>
+    <h3>${esc(w.label||w.market_hash_name)}</h3>
+    <div class="sub">${w.discord_handle?("@"+esc(w.discord_handle)+" · "):""}<span class="p-${sig}" style="padding:2px 8px;border-radius:999px">${LABEL[sig]||sig}</span></div>
+    <div class="mstats">
+      <div class="mstat"><div class="k">Piso agora</div><div class="v" style="color:var(--gold)">${BRL(w.current_floor)}</div></div>
+      <div class="mstat"><div class="k">Topo</div><div class="v">${BRL(w.peak)}</div></div>
+      <div class="mstat"><div class="k">Recuo</div><div class="v">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</div></div>
+      <div class="mstat"><div class="k">Stop de venda</div><div class="v">${BRL(w.stop_price)}</div></div>
+    </div>
+    <canvas id="mchart" height="150"></canvas>
+    <div class="foot" style="margin-top:12px">Atualizado ${rel(w.last_checked_at)} · <a href="${esc(w.steam_url)}" target="_blank" rel="noopener">ver na Steam ↗</a></div>`;
+  $("#scrim").classList.add("open");
+  $("#close").onclick = closeModal;
+  const { data } = await sb.from("steam_price_points").select("ts,floor").eq("watch_id",w.id).order("ts",{ascending:true}).limit(500);
+  drawChart(data||[], w);
+}
+function closeModal(){ $("#scrim").classList.remove("open"); }
+$("#scrim").addEventListener("click",e=>{ if(e.target===$("#scrim")) closeModal(); });
+
+let chart;
+function drawChart(points, w){
+  const ctx = $("#mchart"); if(!ctx) return;
+  const labels = points.map(p=>new Date(p.ts).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));
+  const floors = points.map(p=>p.floor);
+  const win = w.smoothing_window||3;
+  const smooth = floors.map((_,i)=>median(floors.slice(Math.max(0,i-win+1),i+1)));
+  let run=-Infinity; const peak=smooth.map(v=>(run=Math.max(run,v)));
+  const stop=peak.map(v=>v*(1-(w.sell_threshold_pct||10)/100));
+  const ds=(l,d,c,o={})=>({label:l,data:d,borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:o.w||2,tension:.25,borderDash:o.dash||[],fill:false});
+  if(chart) chart.destroy();
+  chart = new Chart(ctx,{type:"line",
+    data:{labels,datasets:[
+      ds("Piso (bruto)",floors,"rgba(154,143,120,.5)",{w:1.2}),
+      ds("Piso suavizado",smooth,"#e8b84b",{w:2.6}),
+      ds("Topo",peak,"#22c55e",{dash:[6,5],w:1.4}),
+      ds("Stop de venda",stop,"#e11d48",{dash:[6,5],w:1.4})]},
+    options:{responsive:true,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#cbb994",boxWidth:14,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+BRL(c.parsed.y)}}},
+      scales:{x:{ticks:{color:"#9a8f78",maxRotation:0,autoSkip:true,maxTicksLimit:6,font:{size:10}},grid:{color:"#221d15"}},
+        y:{ticks:{color:"#9a8f78",callback:v=>"R$ "+v,font:{size:10}},grid:{color:"#221d15"}}}}});
+}
+
+// ---- adicionar item ----
+$("#toggleForm").onclick = ()=> $("#form").classList.toggle("open");
+$("#refresh").onclick = load;
+
+function parseSteam(url){
+  const m = (url||"").match(/\/market\/listings\/(\d+)\/([^?#]+)/);
+  if(!m) return null;
+  let name; try{ name=decodeURIComponent(m[2]); }catch(e){ name=m[2]; }
+  return { appid:parseInt(m[1],10), market_hash_name:name };
+}
+
+$("#submit").onclick = async ()=>{
+  const msg = $("#form-msg"); msg.className="msg"; msg.textContent="";
+  const url = $("#f-url").value.trim();
+  const parsed = parseSteam(url);
+  if(!parsed){ msg.className="msg err"; msg.textContent="Link inválido. Use a URL do item no Mercado da Steam (…/market/listings/…)."; return; }
+  const id = $("#f-id").value.trim();
+  if(id && !/^\d{5,25}$/.test(id)){ msg.className="msg err"; msg.textContent="O ID do Discord deve ser só números (ou deixe em branco e use o bot)."; return; }
+  const row = {
+    steam_url:url, appid:parsed.appid, market_hash_name:parsed.market_hash_name,
+    currency:7, currency_label:"BRL",
+    label:parsed.market_hash_name, discord_handle:$("#f-handle").value.trim()||null,
+    discord_user_id:id||null,
+    sell_threshold_pct:Number($("#f-sell").value)||10, watch_threshold_pct:Number($("#f-watch").value)||6
+  };
+  $("#submit").disabled=true;
+  const { error } = await sb.from("steam_watches").insert(row);
+  $("#submit").disabled=false;
+  if(error){
+    msg.className="msg err";
+    msg.textContent = /duplicate|unique/i.test(error.message) ? "Esse item já está cadastrado pra esse Discord." : ("Erro: "+error.message);
+    return;
+  }
+  msg.className="msg ok"; msg.textContent="Pronto! Vai aparecer no painel. A primeira leitura entra no próximo ciclo (até ~3h).";
+  $("#f-url").value=""; $("#f-handle").value=""; $("#f-id").value="";
+  load();
+};
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+name: track-prices
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # a cada 3 horas
+  workflow_dispatch:          # permite rodar na mao pelo botao "Run workflow"
+
+concurrency:
+  group: track
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Varrer itens e alertar
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          PYTHONUTF8: "1"
+        run: python poll_all.py
