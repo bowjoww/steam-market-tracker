@@ -80,6 +80,11 @@ def update_state(watch_id: str, fields: dict) -> None:
 
 
 # ----------------------------------------------------------------------------- por item
+def _num(v, default):
+    """Usa o default so quando o campo e None (NAO quando e 0 — 'x or d' engole o 0)."""
+    return default if v is None else v
+
+
 def watch_to_cfg(w: dict) -> dict:
     return {
         "appid": w["appid"],
@@ -90,10 +95,10 @@ def watch_to_cfg(w: dict) -> dict:
         "dashboard_url": DASHBOARD_URL,
         "samples_per_run": SAMPLES_PER_RUN,
         "sample_sleep_seconds": SAMPLE_SLEEP,
-        "smoothing_window": int(w.get("smoothing_window") or 3),
-        "watch_threshold_pct": float(w.get("watch_threshold_pct") or 6),
-        "sell_threshold_pct": float(w.get("sell_threshold_pct") or 10),
-        "rearm_threshold_pct": float(w.get("rearm_threshold_pct") or 4),
+        "smoothing_window": int(_num(w.get("smoothing_window"), 3)),
+        "watch_threshold_pct": float(_num(w.get("watch_threshold_pct"), 6)),
+        "sell_threshold_pct": float(_num(w.get("sell_threshold_pct"), 10)),
+        "rearm_threshold_pct": float(_num(w.get("rearm_threshold_pct"), 4)),
     }
 
 
