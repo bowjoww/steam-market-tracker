@@ -12,6 +12,8 @@ concurrency:
 jobs:
   poll:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # pro heartbeat (commit que mantem o cron vivo)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,3 +28,15 @@ jobs:
           CSFLOAT_API_KEY: ${{ secrets.CSFLOAT_API_KEY }}
           PYTHONUTF8: "1"
         run: python poll_all.py
+      - name: Heartbeat (1x/dia mantem o repo ativo p/ o cron nao ser desligado em 60 dias)
+        run: |
+          d=$(date -u +%Y-%m-%d)
+          if [ "$(cat .keepalive 2>/dev/null)" != "$d" ]; then
+            echo "$d" > .keepalive
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .keepalive
+            git commit -m "chore: heartbeat $d" && git push
+          else
+            echo "heartbeat de hoje ja existe; nada a commitar"
+          fi
