@@ -3,92 +3,209 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Monitor de Mercado Steam · Team VIX</title>
+<title>A Guarda · Monitor CS2 · Team VIX</title>
+<meta name="theme-color" content="#6B1A2A" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="config.js"></script>
 <style>
   :root{
-    --bg:#0c0a08; --panel:#16130f; --panel2:#1c1813; --line:#2a241b;
-    --text:#f4ecd8; --muted:#9a8f78; --gold:#e8b84b; --gold2:#c9962f;
-    --green:#22c55e; --amber:#f59e0b; --red:#e11d48;
+    --granate:#6B1A2A; --granate-deep:#3D0A14; --granate-mid:#8B2235;
+    --granate-tint:rgba(107,26,42,0.18); --granate-fenda:rgba(107,26,42,0.30);
+    --dourado:#C9922A; --dourado-claro:#E8B84B; --dourado-mute:rgba(201,146,42,0.20);
+    --creme:#F0E8D8; --creme-dim:#C8B99A; --texto-sec:rgba(240,232,216,0.58);
+    --base:#0F0B09; --surface-1:#1A1208; --surface-2:#221A10; --card-bg:#1C1410;
+    --hold:#2E7D52; --hold-hi:#4CAF6B; --watch:#C9922A; --watch-hi:#E8B84B; --sell:#7D1A1A; --sell-hi:#F06060;
+    --font-display:'Russo One',sans-serif; --font-corpo:'Inter',sans-serif;
+    --radius-card:4px; --radius-btn:3px; --radius-modal:6px; --t:0.15s ease;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:radial-gradient(120% 90% at 50% -10%,#1c1710 0%,var(--bg) 60%) fixed;color:var(--text);
-    font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:22px 16px 60px;line-height:1.5}
-  .wrap{max-width:1040px;margin:0 auto}
-  header{text-align:center;margin-bottom:8px}
-  .eyebrow{color:var(--gold);letter-spacing:.22em;font-size:12px;text-transform:uppercase;font-weight:700}
-  h1{font-size:clamp(22px,5vw,32px);margin-top:6px}
-  .lead{color:var(--muted);font-size:14px;margin-top:6px}
-  .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0 12px;flex-wrap:wrap}
-  .bar h2{font-size:16px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:700}
-  .btn-gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1a1408;padding:10px 16px}
-  .btn-gold:hover{filter:brightness(1.06)}
-  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);padding:9px 14px}
-  /* grid de cards */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;
-    transition:transform .12s ease,border-color .12s ease;position:relative;overflow:hidden}
-  .card:hover{transform:translateY(-2px);border-color:#3a3122}
-  .card .strip{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green)}
-  .card.s-WATCH .strip{background:var(--amber)} .card.s-SELL .strip{background:var(--red)}
-  .card .name{font-weight:700;font-size:15px;padding-right:64px;line-height:1.3}
-  .card .owner{color:var(--muted);font-size:12px;margin-top:2px}
-  .pill{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;letter-spacing:.04em;
-    padding:4px 9px;border-radius:999px}
-  .p-HOLD{background:rgba(34,197,94,.14);color:var(--green)}
-  .p-WATCH{background:rgba(245,158,11,.16);color:var(--amber)}
-  .p-SELL{background:rgba(225,29,72,.16);color:var(--red)}
-  .row{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
-  .row .k{color:var(--muted)} .row .v{font-weight:700}
-  .v.gold{color:var(--gold)}
-  .foot{color:var(--muted);font-size:11.5px;margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
-  .empty{color:var(--muted);text-align:center;padding:40px;border:1px dashed var(--line);border-radius:16px}
-  /* modal */
-  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;
-    align-items:center;justify-content:center;padding:18px;z-index:30}
-  .scrim.open{display:flex}
-  .modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:680px;width:100%;
-    max-height:90vh;overflow:auto;padding:22px}
-  .modal h3{font-size:18px} .modal .sub{color:var(--muted);font-size:13px;margin-top:2px}
-  .mstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:16px 0}
-  .mstat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-  .mstat .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
-  .mstat .v{font-size:18px;font-weight:700;margin-top:3px}
+  body{
+    font-family:var(--font-corpo); color:var(--creme); min-height:100vh; line-height:1.5;
+    background:var(--base);   /* iOS-safe: gradientes vão em camadas position:fixed (sem background-attachment:fixed) */
+  }
+  /* camadas de profundidade (fixas, seguras no Safari iOS) */
+  .bg-grad{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(ellipse 120% 60% at 50% 0%, #3D0A14 0%, transparent 60%),
+      radial-gradient(ellipse 80% 42% at 8% 100%, #2A0810 0%, transparent 55%)}
+  .bg-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.06;
+    background-image:url("assets/grain.png");background-size:128px 128px;background-repeat:repeat}
+  .orbe{position:fixed;right:-30px;top:-70px;width:460px;height:460px;z-index:1;pointer-events:none;
+    background:radial-gradient(circle,rgba(170,40,62,0.32) 0%,transparent 70%);filter:blur(50px)}
+  .watermark-duarte{position:fixed;right:-30px;bottom:0;height:62vh;opacity:0.06;z-index:1;pointer-events:none;
+    filter:grayscale(0.4) contrast(1.1);user-select:none;will-change:transform}
+  .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:0 16px 60px}
+
+  /* header */
+  header{display:flex;align-items:center;gap:16px;padding:13px 16px;position:sticky;top:0;z-index:10;
+    background:rgba(15,11,9,0.86);backdrop-filter:blur(12px);border-bottom:1px solid rgba(107,26,42,0.5);margin:0 -16px 6px}
+  .brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+  .wordmark{height:36px;width:auto;display:block}
+  .header-sub{font-family:var(--font-corpo);font-size:9px;font-weight:600;letter-spacing:0.2em;color:var(--creme-dim);text-transform:uppercase}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0}
+  .live{display:flex;align-items:center;font-size:9px;letter-spacing:0.14em;color:var(--creme-dim);text-transform:uppercase}
+  .dot-live{width:8px;height:8px;border-radius:50%;background:var(--hold-hi);display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+  .badge-mode{font-family:var(--font-display);font-size:8px;letter-spacing:0.12em;color:var(--dourado-claro);
+    background:var(--granate-tint);border:1px solid var(--granate-mid);border-radius:var(--radius-btn);padding:4px 9px;white-space:nowrap}
+
+  /* barra de controle */
+  .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 14px;
+    padding-bottom:14px;border-bottom:1px solid rgba(107,26,42,0.4);flex-wrap:wrap}
+  .bar h2{font-family:var(--font-display);font-size:12px;color:var(--creme-dim);letter-spacing:0.12em;text-transform:uppercase}
+  .bar .actions{display:flex;gap:10px}
+  button{font-family:inherit;cursor:pointer;border:none}
+  .btn-primary{font-family:var(--font-display);font-size:11px;letter-spacing:0.10em;text-transform:uppercase;
+    background:linear-gradient(135deg,var(--granate-mid) 0%,#A0283F 100%);color:var(--dourado-claro);
+    border:1px solid rgba(201,146,42,0.5);border-radius:var(--radius-btn);padding:11px 16px;min-height:44px;
+    transition:filter var(--t),box-shadow var(--t)}
+  .btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 12px rgba(201,146,42,0.22)}
+  .btn-ghost{font-family:var(--font-corpo);font-size:12px;background:transparent;color:var(--creme-dim);
+    border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-btn);padding:11px 14px;min-height:44px;
+    transition:border-color var(--t),color var(--t)}
+  .btn-ghost:hover{border-color:rgba(201,146,42,0.30);color:var(--creme)}
+
   /* form */
-  .form{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:8px;display:none}
+  .form{background:var(--surface-1);border:1px solid rgba(255,255,255,0.04);border-top:2px solid var(--granate-mid);
+    border-radius:var(--radius-modal);padding:18px;margin-bottom:14px;display:none}
   .form.open{display:block}
-  .form .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px;text-transform:uppercase;letter-spacing:.05em}
-  input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);
-    padding:10px 12px;font-family:inherit;font-size:14px}
-  input:focus{outline:none;border-color:var(--gold2)}
-  .hint{font-size:11.5px;color:var(--muted);margin-top:4px}
-  .msg{padding:10px 12px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
-  .msg.ok{display:block;background:rgba(34,197,94,.12);border:1px solid #1f6f43;color:#86efac}
-  .msg.err{display:block;background:rgba(225,29,72,.12);border:1px solid #6b1f27;color:#fca5a5}
-  details summary{cursor:pointer;color:var(--muted);font-size:12px;margin-top:12px}
-  a{color:var(--gold);text-decoration:none} a:hover{text-decoration:underline}
-  .x{float:right;background:transparent;color:var(--muted);font-size:22px;line-height:1;border:none}
+  .form-title{font-family:var(--font-display);font-size:11px;letter-spacing:0.18em;color:var(--dourado-claro);text-transform:uppercase;margin-bottom:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  label{display:block;font-family:var(--font-corpo);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--texto-sec);margin:12px 0 5px}
+  input{width:100%;background:var(--surface-2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-card);
+    color:var(--creme);font-family:var(--font-corpo);font-size:14px;padding:11px 12px}
+  input:focus{outline:none;border-color:rgba(201,146,42,0.4);background:rgba(34,26,16,0.9)}
+  .hint{font-family:var(--font-corpo);font-size:11.5px;color:var(--texto-sec);margin-top:4px;line-height:1.4}
+  details summary{cursor:pointer;color:var(--texto-sec);font-size:11.5px;margin-top:12px;letter-spacing:0.04em}
+  .msg{font-family:var(--font-corpo);padding:10px 12px;border-radius:var(--radius-card);font-size:13px;margin-top:12px;display:none}
+  .msg.ok{display:block;background:rgba(46,125,82,0.14);border:1px solid rgba(76,175,107,0.3);color:#9be8b8}
+  .msg.err{display:block;background:rgba(125,26,26,0.16);border:1px solid rgba(240,96,96,0.3);color:#f3a9a9}
+  .form-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+
+  /* grid de cards — fendas heráldicas granate */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;
+    background:var(--granate-fenda);border:1px solid var(--granate-fenda);border-radius:var(--radius-card);overflow:hidden}
+  .grid.single{display:block;max-width:440px;margin:0 auto;background:none;border:none;overflow:visible}
+  .grid.single .card{border:1px solid var(--granate-fenda);border-radius:var(--radius-card)}
+  .grid.single .empty{border:1px solid var(--granate-fenda);border-radius:var(--radius-card)}
+  .card{background:var(--card-bg);padding:14px 14px 0;cursor:pointer;position:relative;transition:background var(--t);overflow:hidden}
+  .card:hover{background:var(--surface-2)}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--hold-hi);box-shadow:0 1px 7px rgba(76,175,107,0.45)}
+  .card.s-WATCH::before{background:var(--watch-hi);box-shadow:0 1px 7px rgba(232,184,75,0.45)}
+  .card.s-SELL::before{background:var(--sell-hi);box-shadow:0 1px 7px rgba(240,96,96,0.5)}
+  .card::after{content:'';position:absolute;left:0;top:3px;bottom:0;width:3px;background:rgba(107,26,42,0.6)}
+  .card-name{font-family:var(--font-display);font-size:12px;color:var(--creme);letter-spacing:0.05em;text-transform:uppercase;
+    line-height:1.3;padding-right:62px;margin-left:6px}
+  .card-owner{font-family:var(--font-corpo);font-size:11px;color:var(--texto-sec);margin:2px 0 10px 6px}
+  .seal{position:absolute;top:13px;right:12px;font-family:var(--font-display);font-size:8.5px;letter-spacing:0.08em;
+    padding:3px 7px;border-radius:var(--radius-btn);border:1px solid}
+  .seal-HOLD{background:rgba(46,125,82,0.14);color:var(--hold-hi);border-color:rgba(76,175,107,0.3)}
+  .seal-WATCH{background:rgba(201,146,42,0.14);color:var(--watch-hi);border-color:rgba(232,184,75,0.3)}
+  .seal-SELL{background:rgba(125,26,26,0.18);color:var(--sell-hi);border-color:rgba(240,96,96,0.3)}
+  .card-stats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,0.04);margin:0 -14px}
+  .stat-cell{padding:9px 14px}
+  .stat-cell:nth-child(odd){border-right:1px solid rgba(255,255,255,0.04)}
+  .stat-k{font-family:var(--font-corpo);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--texto-sec);margin-bottom:3px}
+  .stat-v{font-family:var(--font-display);font-size:13px;color:var(--creme)}
+  .stat-v.hero{font-size:16px;color:var(--dourado-claro);line-height:1.1}
+  .card-real{margin:0 -14px;padding:9px 14px;background:rgba(107,26,42,0.16);border-top:1px solid rgba(201,146,42,0.12);
+    display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card-real-k{font-family:var(--font-corpo);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--texto-sec)}
+  .card-real-v{font-family:var(--font-display);font-size:12px;color:var(--creme);letter-spacing:0.03em;text-align:right}
+  .card-real-v.none{color:var(--texto-sec);font-family:var(--font-corpo);font-size:11px}
+
+  /* empty state */
+  .empty{grid-column:1/-1;text-align:center;padding:56px 24px;background:var(--card-bg)}
+  .empty svg{margin-bottom:16px;filter:drop-shadow(0 4px 12px rgba(201,146,42,0.3))}
+  .empty p{font-family:var(--font-display);font-size:13px;letter-spacing:0.08em;color:var(--creme);text-transform:uppercase}
+  .empty .empty-sub{font-family:var(--font-corpo);font-size:12.5px;letter-spacing:0;color:var(--texto-sec);text-transform:none;margin-top:6px;font-weight:400}
+
+  /* modal */
+  .scrim{position:fixed;inset:0;background:rgba(15,11,9,0.82);display:none;
+    align-items:center;justify-content:center;padding:18px;z-index:30}
+  .scrim.open{display:flex;backdrop-filter:blur(4px)}
+  .modal{background:var(--surface-1);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-modal);
+    max-width:640px;width:100%;max-height:90vh;overflow:auto;padding:22px;position:relative;isolation:isolate}
+  .modal::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:200px;z-index:-1;
+    background:radial-gradient(circle,rgba(107,26,42,0.45) 0%,transparent 70%);pointer-events:none}
+  .modal-close{position:absolute;top:13px;right:13px;background:transparent;border:1px solid rgba(255,255,255,0.07);
+    border-radius:var(--radius-btn);color:var(--texto-sec);font-size:18px;line-height:1;
+    min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+    transition:border-color var(--t),color var(--t)}
+  .modal-close:hover{border-color:rgba(240,96,96,0.4);color:var(--sell-hi)}
+  .modal-name{font-family:var(--font-display);font-size:14px;letter-spacing:0.07em;color:var(--creme);text-transform:uppercase;padding-right:48px}
+  .modal-sub{font-family:var(--font-corpo);font-size:12px;color:var(--texto-sec);margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .modal-sub .seal{position:static}
+  .mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--granate-fenda);
+    margin:16px 0;border-radius:var(--radius-card);overflow:hidden}
+  .mstat{background:var(--surface-2);padding:11px 13px}
+  .mstat.hero-piso{grid-column:1/-1}
+  .mstat .k{font-family:var(--font-corpo);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--texto-sec);margin-bottom:3px}
+  .mstat .v{font-family:var(--font-display);font-size:16px;color:var(--creme)}
+  .mstat.hero-piso .v{font-size:28px;color:var(--dourado-claro);line-height:1.05;letter-spacing:0.03em;text-shadow:0 0 20px rgba(201,146,42,0.25)}
+  .section-tag{display:flex;align-items:center;gap:10px;margin:18px 0 10px}
+  .section-tag span{font-family:var(--font-display);font-size:9px;letter-spacing:0.26em;color:var(--dourado);white-space:nowrap}
+  .section-tag::after{content:'';flex:1;height:1.5px;background:linear-gradient(90deg,rgba(201,146,42,0.35),transparent)}
+  .mrow{display:flex;justify-content:space-between;align-items:center;padding:7px 2px;font-size:13px}
+  .mrow .mk{font-family:var(--font-corpo);color:var(--creme-dim);display:flex;align-items:center;gap:6px}
+  .mrow .price{font-family:var(--font-corpo);color:var(--creme)}
+  .mrow.steam .price.inflada{text-decoration:line-through;opacity:0.42}
+  .badge-inflada{font-family:var(--font-corpo);font-size:7px;letter-spacing:0.12em;text-transform:uppercase;color:var(--sell-hi);
+    background:rgba(125,26,26,0.2);border:1px solid rgba(240,96,96,0.2);border-radius:var(--radius-btn);padding:1px 5px;margin-left:6px}
+  .mrow.best{background:rgba(201,146,42,0.06);border:1px solid rgba(201,146,42,0.2);border-radius:var(--radius-card);padding:8px 10px;margin:6px 0}
+  .mrow.best .price{font-family:var(--font-display);font-size:16px;color:var(--dourado-claro)}
+  .badge-menor{font-family:var(--font-display);font-size:7.5px;letter-spacing:0.08em;color:var(--dourado);
+    border:1px solid rgba(201,146,42,0.3);border-radius:var(--radius-btn);padding:1px 5px;margin-left:6px}
+  .link-buff{font-family:var(--font-corpo);font-size:12px;color:rgba(201,146,42,0.7);border-bottom:1px solid rgba(201,146,42,0.3);
+    text-decoration:none;margin-top:10px;display:inline-block}
+  .link-buff:hover{color:var(--dourado-claro);border-bottom-color:var(--dourado)}
+  .modal-foot{font-family:var(--font-corpo);color:var(--texto-sec);font-size:11.5px;margin-top:14px;border-top:1px solid rgba(255,255,255,0.05);padding-top:10px}
+  .modal-foot a{color:rgba(201,146,42,0.7)}
+  canvas{margin-top:14px}
+  a{color:var(--dourado-claro);text-decoration:none}
+
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,107,0.6)}50%{box-shadow:0 0 0 5px rgba(76,175,107,0)}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  @media(max-width:520px){
+    .wordmark{height:30px} .header-sub{font-size:8px;letter-spacing:0.14em}
+    .badge-mode{font-size:7px;padding:3px 6px;letter-spacing:0.08em} header{gap:10px;padding:11px 14px}
+    .bar h2{font-size:11px}
+    .grid2{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
+<div class="bg-grad"></div>
+<div class="bg-grain"></div>
+<div class="orbe"></div>
+<img class="watermark-duarte" src="assets/duarte-busto.png" alt="" aria-hidden="true" />
 <div class="wrap">
   <header>
-    <div class="eyebrow">Team VIX · Mercado Steam</div>
-    <h1>Monitor de Itens · Stop Móvel</h1>
-    <p class="lead">Cada um acompanha seus itens da Steam. Quando o piso vira pra baixo, o dono é avisado no Discord.</p>
+    <div class="brand">
+      <img class="wordmark" src="assets/wordmark.png" alt="Team VIX" width="84" height="36" />
+      <span class="header-sub">A Guarda Capixaba · #GOVIX</span>
+    </div>
+    <div class="header-right">
+      <span class="live"><span class="dot-live"></span>ao vivo</span>
+      <span class="badge-mode">Stop Móvel</span>
+    </div>
   </header>
 
   <div class="bar">
     <h2 id="count">Carregando…</h2>
-    <div>
+    <div class="actions">
       <button class="btn-ghost" id="refresh">Atualizar</button>
-      <button class="btn-gold" id="toggleForm">+ Adicionar item</button>
+      <button class="btn-primary" id="toggleForm">+ Adicionar item</button>
     </div>
   </div>
 
   <div class="form" id="form">
+    <div class="form-title">Registrar item</div>
     <div class="grid2">
       <div>
         <label>Link do item na Steam</label>
@@ -112,8 +229,9 @@
       </div>
     </details>
     <div class="msg" id="form-msg"></div>
-    <div style="margin-top:14px;text-align:right">
-      <button class="btn-gold" id="submit">Adicionar e começar a monitorar</button>
+    <div class="form-footer">
+      <button class="btn-ghost" id="cancelForm">Cancelar</button>
+      <button class="btn-primary" id="submit">Começar a monitorar</button>
     </div>
   </div>
 
@@ -130,14 +248,15 @@ import Chart from "https://esm.sh/chart.js@4.4.1/auto";
 
 const sb = createClient(window.SB.url, window.SB.key);
 const SEV = { HOLD:0, WATCH:1, SELL:2 };
-const BRL = (n,cur="R$") => n==null ? "—" : cur+" "+Number(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const BRL = (n) => n==null ? "—" : "R$ "+Number(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const median = a => { const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; };
 function rel(iso){ if(!iso) return "ainda não checado";
   const d=(Date.now()-new Date(iso).getTime())/1000;
   if(d<90) return "agora há pouco"; if(d<3600) return Math.round(d/60)+" min atrás";
   if(d<86400) return Math.round(d/3600)+"h atrás"; return Math.round(d/86400)+"d atrás"; }
 const LABEL = {HOLD:"SEGURA",WATCH:"ATENÇÃO",SELL:"VENDE"};
-
+const esc = s => (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const buffUrl = name => "https://buff.163.com/market/csgo#tab=selling&page_num=1&search=" + encodeURIComponent(name||"");
 const $ = s => document.querySelector(s);
 let WATCHES = [];
 
@@ -149,46 +268,68 @@ async function load(){
   render();
 }
 
+function ddColor(sig){ return sig==='SELL'?'var(--sell-hi)':sig==='WATCH'?'var(--watch-hi)':'var(--creme)'; }
+
 function render(){
   const n = WATCHES.length;
-  $("#count").textContent = n ? `${n} ${n>1?"itens monitorados":"item monitorado"}` : "Nenhum item ainda";
+  $("#count").textContent = n ? `${n} ${n>1?"itens na guarda":"item na guarda"}` : "Nenhum item ainda";
   const box = $("#cards");
-  if(!n){ box.innerHTML = `<div class="empty">Ninguém cadastrou item ainda.<br>Clique em <b>+ Adicionar item</b> e cole o link da Steam.</div>`; return; }
+  box.className = "grid" + (n<=1 ? " single" : "");
+  if(!n){ box.innerHTML = `<div class="empty">
+    <svg width="56" height="64" viewBox="0 0 36 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2L34 8V22C34 31 18 38 18 38C18 38 2 31 2 22V8L18 2Z" fill="#6B1A2A" stroke="#C9922A" stroke-width="1"/><text x="18" y="27" text-anchor="middle" font-family="Russo One,sans-serif" font-size="15" fill="#E8B84B">V</text></svg>
+    <p>A Guarda está de prontidão</p>
+    <p class="empty-sub">Nenhum item ainda. Clique em <b>+ Adicionar item</b> e o Duarte começa a vigiar o mercado.</p>
+  </div>`; return; }
   box.innerHTML = WATCHES.map((w,i)=>{
     const sig=w.signal||"HOLD";
     const lo = (w.market_prices && w.market_prices.lowest) || null;
+    const dd = w.drawdown_pct!=null ? "−"+Number(w.drawdown_pct).toFixed(1)+"%" : "—";
     return `<div class="card s-${sig}" data-i="${i}">
-      <span class="strip"></span>
-      <span class="pill p-${sig}">${LABEL[sig]||sig}</span>
-      <div class="name">${esc(w.label||w.market_hash_name)}</div>
-      <div class="owner">${w.discord_handle?("@"+esc(w.discord_handle)):"sem dono definido"}</div>
-      <div class="row"><span class="k">Piso agora</span><span class="v gold">${BRL(w.current_floor)}</span></div>
-      <div class="row"><span class="k">Topo</span><span class="v">${BRL(w.peak)}</span></div>
-      <div class="row"><span class="k">Recuo do topo</span><span class="v" style="color:${sig==='SELL'?'var(--red)':sig==='WATCH'?'var(--amber)':'var(--text)'}">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</span></div>
-      ${lo?`<div class="row"><span class="k">Mercado real</span><span class="v" style="color:#7dd3fc">${BRL(lo.price_brl)} <small style="color:var(--muted);font-weight:400">${esc(lo.source)}</small></span></div>`:``}
-      <div class="foot">Atualizado ${rel(w.last_checked_at)}</div>
+      <span class="seal seal-${sig}">${LABEL[sig]||sig}</span>
+      <div class="card-name">${esc(w.label||w.market_hash_name)}</div>
+      <div class="card-owner">${w.discord_handle?("@"+esc(w.discord_handle)):"sem dono definido"}</div>
+      <div class="card-stats">
+        <div class="stat-cell"><div class="stat-k">Piso agora</div><div class="stat-v hero">${BRL(w.current_floor)}</div></div>
+        <div class="stat-cell"><div class="stat-k">Topo</div><div class="stat-v">${BRL(w.peak)}</div></div>
+        <div class="stat-cell"><div class="stat-k">Recuo</div><div class="stat-v" style="color:${ddColor(sig)}">${dd}</div></div>
+        <div class="stat-cell"><div class="stat-k">Stop</div><div class="stat-v">${BRL(w.stop_price)}</div></div>
+      </div>
+      <div class="card-real">
+        <span class="card-real-k">Mercado real</span>
+        ${lo?`<span class="card-real-v">${BRL(lo.price_brl)} · ${esc(lo.source)}</span>`:`<span class="card-real-v none">sem anúncio nos parceiros</span>`}
+      </div>
     </div>`;
   }).join("");
   box.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>openModal(WATCHES[+c.dataset.i])));
 }
-const esc = s => (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
-const buffUrl = name => "https://buff.163.com/market/csgo#tab=selling&page_num=1&search=" + encodeURIComponent(name||"");
 
 async function openModal(w){
   const sig=w.signal||"HOLD";
+  const m=w.market_prices, src=(m&&m.sources)||{}, lo=m&&m.lowest;
+  const steamInflada = lo && w.current_floor!=null && lo.price_brl < w.current_floor;
+  const mrows = Object.keys(src).map(k=>{
+    const v=src[k]; const isBest = lo && v && lo.source===k;
+    if(isBest) return `<div class="mrow best"><span class="mk">${esc(k)} <span class="badge-menor">MENOR</span></span><span class="price">${BRL(v.price_brl)}</span></div>`;
+    return `<div class="mrow"><span class="mk">${esc(k)}</span><span class="price">${v?BRL(v.price_brl):"—"}</span></div>`;
+  }).join("");
   $("#modal").innerHTML = `
-    <button class="x" id="close">×</button>
-    <h3>${esc(w.label||w.market_hash_name)}</h3>
-    <div class="sub">${w.discord_handle?("@"+esc(w.discord_handle)+" · "):""}<span class="p-${sig}" style="padding:2px 8px;border-radius:999px">${LABEL[sig]||sig}</span></div>
+    <button class="modal-close" id="close" aria-label="Fechar">×</button>
+    <div class="modal-name">${esc(w.label||w.market_hash_name)}</div>
+    <div class="modal-sub">${w.discord_handle?("@"+esc(w.discord_handle)):""} <span class="seal seal-${sig}">${LABEL[sig]||sig}</span></div>
     <div class="mstats">
-      <div class="mstat"><div class="k">Piso agora</div><div class="v" style="color:var(--gold)">${BRL(w.current_floor)}</div></div>
+      <div class="mstat hero-piso"><div class="k">Piso agora</div><div class="v">${BRL(w.current_floor)}</div></div>
       <div class="mstat"><div class="k">Topo</div><div class="v">${BRL(w.peak)}</div></div>
-      <div class="mstat"><div class="k">Recuo</div><div class="v">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</div></div>
+      <div class="mstat"><div class="k">Recuo</div><div class="v" style="color:${ddColor(sig)}">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</div></div>
       <div class="mstat"><div class="k">Stop de venda</div><div class="v">${BRL(w.stop_price)}</div></div>
     </div>
-    ${(()=>{const m=w.market_prices,src=(m&&m.sources)||{};const rows=Object.keys(src).map(k=>`<div class="row"><span class="k">${k}</span><span class="v">${src[k]?BRL(src[k].price_brl):"—"}</span></div>`).join("");const lo=m&&m.lowest;return `<div style="margin:6px 0 4px;border-top:1px solid var(--line);padding-top:12px"><div class="k" style="margin-bottom:6px;color:var(--gold)">VALOR REAL · mercados de terceiros</div><div class="row"><span class="k">Steam (piso)</span><span class="v">${BRL(w.current_floor)}</span></div>${rows}${lo?`<div class="row"><span class="k" style="color:#7dd3fc;font-weight:700">Menor (real)</span><span class="v" style="color:#7dd3fc">${BRL(lo.price_brl)} · ${esc(lo.source)}</span></div>`:`<div class="foot" style="margin-top:6px">Sem anúncio nos parceiros agora (item raro).</div>`}<div style="margin-top:8px;font-size:13px"><a href="${buffUrl(w.market_hash_name)}" target="_blank" rel="noopener">Ver no Buff (referência) ↗</a></div></div>`;})()}
+    <div class="section-tag"><span>VALOR REAL · MERCADOS DE TERCEIROS</span></div>
+    <div class="mrow steam"><span class="mk">Steam (piso)</span><span class="price${steamInflada?' inflada':''}">${BRL(w.current_floor)}${steamInflada?'<span class="badge-inflada">inflada</span>':''}</span></div>
+    ${mrows}
+    ${lo?'':`<div class="modal-foot" style="border:none;padding:6px 0 0;margin:2px 0">Sem anúncio nos parceiros agora (item raro).</div>`}
+    <div><a class="link-buff" href="${esc(buffUrl(w.market_hash_name))}" target="_blank" rel="noopener">Ver no Buff (referência) ↗</a></div>
     <canvas id="mchart" height="150"></canvas>
-    <div class="foot" style="margin-top:12px">Atualizado ${rel(w.last_checked_at)} · <a href="${esc(w.steam_url)}" target="_blank" rel="noopener">ver na Steam ↗</a></div>`;
+    <div class="modal-foot">Atualizado ${rel(w.last_checked_at)} · <a href="${esc(w.steam_url)}" target="_blank" rel="noopener">ver na Steam ↗</a></div>`;
+  const md=$("#modal"); md.style.animation="slideUp 200ms ease-out";
   $("#scrim").classList.add("open");
   $("#close").onclick = closeModal;
   const { data } = await sb.from("steam_price_points").select("ts,floor").eq("watch_id",w.id).order("ts",{ascending:true}).limit(500);
@@ -196,6 +337,7 @@ async function openModal(w){
 }
 function closeModal(){ $("#scrim").classList.remove("open"); }
 $("#scrim").addEventListener("click",e=>{ if(e.target===$("#scrim")) closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
 
 let chart;
 function drawChart(points, w){
@@ -206,23 +348,24 @@ function drawChart(points, w){
   const smooth = floors.map((_,i)=>median(floors.slice(Math.max(0,i-win+1),i+1)));
   let run=-Infinity; const peak=smooth.map(v=>(run=Math.max(run,v)));
   const stop=peak.map(v=>v*(1-(w.sell_threshold_pct||10)/100));
-  const ds=(l,d,c,o={})=>({label:l,data:d,borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:o.w||2,tension:.25,borderDash:o.dash||[],fill:false});
+  const ds=(l,d,c,o={})=>({label:l,data:d,borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:o.w||2,tension:.35,borderDash:o.dash||[],fill:false});
   if(chart) chart.destroy();
   chart = new Chart(ctx,{type:"line",
     data:{labels,datasets:[
-      ds("Piso (bruto)",floors,"rgba(154,143,120,.5)",{w:1.2}),
-      ds("Piso suavizado",smooth,"#e8b84b",{w:2.6}),
-      ds("Topo",peak,"#22c55e",{dash:[6,5],w:1.4}),
-      ds("Stop de venda",stop,"#e11d48",{dash:[6,5],w:1.4})]},
-    options:{responsive:true,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{labels:{color:"#cbb994",boxWidth:14,font:{size:11}}},
+      ds("Piso (bruto)",floors,"rgba(240,232,216,0.25)",{w:1.2}),
+      ds("Piso suavizado",smooth,"#E8B84B",{w:2.6}),
+      ds("Topo",peak,"rgba(76,175,107,0.5)",{dash:[6,5],w:1.4}),
+      ds("Stop de venda",stop,"rgba(240,96,96,0.8)",{dash:[6,5],w:1.4})]},
+    options:{responsive:true,animation:{duration:600},interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#C8B99A",boxWidth:14,font:{size:11,family:"Inter"}}},
         tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+BRL(c.parsed.y)}}},
-      scales:{x:{ticks:{color:"#9a8f78",maxRotation:0,autoSkip:true,maxTicksLimit:6,font:{size:10}},grid:{color:"#221d15"}},
-        y:{ticks:{color:"#9a8f78",callback:v=>"R$ "+v,font:{size:10}},grid:{color:"#221d15"}}}}});
+      scales:{x:{ticks:{color:"#C8B99A",maxRotation:0,autoSkip:true,maxTicksLimit:6,font:{size:10,family:"Inter"}},grid:{color:"rgba(255,255,255,0.04)"}},
+        y:{ticks:{color:"#C8B99A",callback:v=>"R$ "+v,font:{size:10,family:"Inter"}},grid:{color:"rgba(255,255,255,0.04)"}}}}});
 }
 
 // ---- adicionar item ----
 $("#toggleForm").onclick = ()=> $("#form").classList.toggle("open");
+$("#cancelForm").onclick = ()=> $("#form").classList.remove("open");
 $("#refresh").onclick = load;
 
 function parseSteam(url){
@@ -260,7 +403,12 @@ $("#submit").onclick = async ()=>{
 };
 
 load();
-setInterval(load, 5*60*1000);
+// re-checa a cada 5min, mas pausa quando a aba está em background (evita pilha de requisições no mobile)
+let timer = setInterval(load, 5*60*1000);
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible"){ load(); if(!timer) timer=setInterval(load,5*60*1000); }
+  else { clearInterval(timer); timer=null; }
+});
 </script>
 </body>
 </html>
