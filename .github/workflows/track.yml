@@ -23,5 +23,6 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          CSFLOAT_API_KEY: ${{ secrets.CSFLOAT_API_KEY }}
           PYTHONUTF8: "1"
         run: python poll_all.py
