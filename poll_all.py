@@ -20,11 +20,13 @@ import urllib.parse
 import urllib.request
 
 import tracker  # reaproveita parse/fetch/evaluate/should_alert/discord
+import markets  # precos de terceiros (DMarket, White.Market, CSFloat) em BRL
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 WEBHOOK = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "").strip()
+CSFLOAT_KEY = os.environ.get("CSFLOAT_API_KEY", "").strip()  # opcional; vazio = pula CSFloat
 
 # UA NAO-navegador: a secret key do Supabase e recusada se o UA parecer browser
 SB_USER_AGENT = "teamvix-steam-tracker/1.0"
@@ -102,9 +104,25 @@ def watch_to_cfg(w: dict) -> dict:
     }
 
 
+def market_snapshot(market_hash_name: str) -> dict | None:
+    """Preco do item nos mercados de terceiros (valor real, mais fiel que a Steam)."""
+    try:
+        r = markets.all_prices(market_hash_name, CSFLOAT_KEY or None)
+    except Exception as exc:  # noqa: BLE001 - mercado nao pode derrubar o ciclo
+        print(f"[WARN] mercados {market_hash_name}: {exc}", file=sys.stderr)
+        return None
+    return {
+        "checked_at": tracker.now_iso(),
+        "fx_usd_brl": markets.usd_to_brl(),
+        "sources": {k: r.get(k) for k in ("DMarket", "White.Market", "CSFloat")},
+        "lowest": r.get("lowest"),
+    }
+
+
 def process_watch(w: dict) -> str:
     label = w.get("label") or w["market_hash_name"]
     cfg = watch_to_cfg(w)
+    mp = market_snapshot(w["market_hash_name"])  # parceiros (independe da Steam)
     try:
         sample = tracker.sample_floor(cfg)
     except Exception as exc:  # noqa: BLE001
@@ -113,8 +131,11 @@ def process_watch(w: dict) -> str:
 
     if sample is None:
         update_state(w["id"], {"last_checked_at": tracker.now_iso(),
-                               "last_error": "sem leitura valida da Steam"})
-        return f"{label}: SEM LEITURA"
+                               "last_error": "sem leitura valida da Steam",
+                               "market_prices": mp})
+        lo = mp and mp.get("lowest")
+        return (f"{label}: SEM LEITURA Steam"
+                + (f" | parceiro R$ {lo['price_brl']:.2f} ({lo['source']})" if lo else " | sem parceiro"))
 
     ts = tracker.now_iso()
     history = get_history(w["id"])
@@ -128,6 +149,7 @@ def process_watch(w: dict) -> str:
     fields = {c: state[c] for c in STATE_COLS}
     fields["last_checked_at"] = ts
     fields["last_error"] = None
+    fields["market_prices"] = mp
     update_state(w["id"], fields)
 
     if fire and WEBHOOK:

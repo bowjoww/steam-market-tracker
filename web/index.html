@@ -156,6 +156,7 @@ function render(){
   if(!n){ box.innerHTML = `<div class="empty">Ninguém cadastrou item ainda.<br>Clique em <b>+ Adicionar item</b> e cole o link da Steam.</div>`; return; }
   box.innerHTML = WATCHES.map((w,i)=>{
     const sig=w.signal||"HOLD";
+    const lo = (w.market_prices && w.market_prices.lowest) || null;
     return `<div class="card s-${sig}" data-i="${i}">
       <span class="strip"></span>
       <span class="pill p-${sig}">${LABEL[sig]||sig}</span>
@@ -164,12 +165,14 @@ function render(){
       <div class="row"><span class="k">Piso agora</span><span class="v gold">${BRL(w.current_floor)}</span></div>
       <div class="row"><span class="k">Topo</span><span class="v">${BRL(w.peak)}</span></div>
       <div class="row"><span class="k">Recuo do topo</span><span class="v" style="color:${sig==='SELL'?'var(--red)':sig==='WATCH'?'var(--amber)':'var(--text)'}">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</span></div>
+      ${lo?`<div class="row"><span class="k">Mercado real</span><span class="v" style="color:#7dd3fc">${BRL(lo.price_brl)} <small style="color:var(--muted);font-weight:400">${esc(lo.source)}</small></span></div>`:``}
       <div class="foot">Atualizado ${rel(w.last_checked_at)}</div>
     </div>`;
   }).join("");
   box.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>openModal(WATCHES[+c.dataset.i])));
 }
 const esc = s => (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const buffUrl = name => "https://buff.163.com/market/csgo#tab=selling&page_num=1&search=" + encodeURIComponent(name||"");
 
 async function openModal(w){
   const sig=w.signal||"HOLD";
@@ -183,6 +186,7 @@ async function openModal(w){
       <div class="mstat"><div class="k">Recuo</div><div class="v">${w.drawdown_pct!=null?("−"+Number(w.drawdown_pct).toFixed(1)+"%"):"—"}</div></div>
       <div class="mstat"><div class="k">Stop de venda</div><div class="v">${BRL(w.stop_price)}</div></div>
     </div>
+    ${(()=>{const m=w.market_prices,src=(m&&m.sources)||{};const rows=Object.keys(src).map(k=>`<div class="row"><span class="k">${k}</span><span class="v">${src[k]?BRL(src[k].price_brl):"—"}</span></div>`).join("");const lo=m&&m.lowest;return `<div style="margin:6px 0 4px;border-top:1px solid var(--line);padding-top:12px"><div class="k" style="margin-bottom:6px;color:var(--gold)">VALOR REAL · mercados de terceiros</div><div class="row"><span class="k">Steam (piso)</span><span class="v">${BRL(w.current_floor)}</span></div>${rows}${lo?`<div class="row"><span class="k" style="color:#7dd3fc;font-weight:700">Menor (real)</span><span class="v" style="color:#7dd3fc">${BRL(lo.price_brl)} · ${esc(lo.source)}</span></div>`:`<div class="foot" style="margin-top:6px">Sem anúncio nos parceiros agora (item raro).</div>`}<div style="margin-top:8px;font-size:13px"><a href="${buffUrl(w.market_hash_name)}" target="_blank" rel="noopener">Ver no Buff (referência) ↗</a></div></div>`;})()}
     <canvas id="mchart" height="150"></canvas>
     <div class="foot" style="margin-top:12px">Atualizado ${rel(w.last_checked_at)} · <a href="${esc(w.steam_url)}" target="_blank" rel="noopener">ver na Steam ↗</a></div>`;
   $("#scrim").classList.add("open");
